@@ -111,4 +111,9 @@ contract SmartContractWallet is Ownable2Step {
         /// Emitting events
         emit ETHTransferred(target, ethAmount);
     }
+
+    /**
+     * @notice ETH receive fallback.
+     */
+    receive() external payable {}
 }
