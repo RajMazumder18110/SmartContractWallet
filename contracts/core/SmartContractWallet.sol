@@ -11,9 +11,6 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
-/// @notice Custom imports
-import {Bytecode} from "../libraries/Bytecode.sol";
-
 /// @notice Custom errors.
 /// @dev The deployment failed.
 error FailedToDeployBytecode();
@@ -55,39 +52,6 @@ contract SmartContractWallet is Ownable2Step {
     ) public view onlyOwner returns (bytes memory returnValue) {
         /// Execute and returns the expected return value from the call.
         returnValue = Address.functionStaticCall(target, data);
-    }
-
-    /**
-     * @notice Generate a creation code and deploy that results.
-     * - Generated address (deployedAddress) must be non-zero.
-     *
-     * @param _bytecode Compiled bytecode.
-     * @return deployedAddress The newly deployed contract address.
-     */
-    function deployContract(
-        bytes memory _bytecode
-    ) public payable onlyOwner returns (address deployedAddress) {
-        /// Build init code.
-        uint256 weiAmount = msg.value;
-        bytes memory creationCode = Bytecode.getCreationCodeFor(_bytecode);
-
-        // Deploy contract using `create`.
-        assembly {
-            deployedAddress := create(
-                weiAmount,
-                add(creationCode, 32),
-                mload(creationCode)
-            )
-        }
-
-        /// Non-zero validation.
-        if (deployedAddress == address(0)) revert FailedToDeployBytecode();
-
-        /// Emitting events
-        if (weiAmount > 0) {
-            emit ETHTransferred(deployedAddress, weiAmount);
-        }
-        emit ContractDeployed(deployedAddress);
     }
 
     /**
